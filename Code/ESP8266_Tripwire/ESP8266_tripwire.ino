@@ -12,19 +12,22 @@ const char* WIFI_PASS = "spoo1989";
 // MQTT
 // Make sure to update this for your own MQTT Broker!
 const char* MQTT_SERVER = "192.168.1.106";
-const char* MQTT_TOPIC = "trigger_status";
+const char* MQTT_TOPIC = "trigger";
 
 // The client id identifies the ESP8266 device. Think of it a bit like a hostname (Or just a name, like Greg).
-const char* CLIENT_ID = "TripWire-000";
+const char* CLIENT_ID = "tripwire";
 
 // Initialise the WiFi and MQTT Client objects
 WiFiClient wifi_client;
 PubSubClient client(MQTT_SERVER, 1883, wifi_client); // 1883 is the listener port for the Broker
 
+unsigned long int trigger_time = 0;
+
+bool notif_status = true;
+
 void MQTT_sub_callback(char* recv_topic, byte* payload, unsigned int msg_length) {
-  if(!strcmp(recv_topic, MQTT_TOPIC)){
-    delay(0);
-  }
+  return;
+  
 }
 
 bool Connect() {
@@ -79,21 +82,29 @@ void loop() {
     }
   }
 
-  int LDR_value = analogRead(LDR_IN);
-  Serial.println(LDR_value);
-  
-  bool LDR_triggered = LDR_value > 500 ? false:true ;
-
-  if (LDR_triggered) {
-      client.publish(MQTT_TOPIC, "Triggered!");
-      delay(3000);
-      client.publish(MQTT_TOPIC, "----------");
-  }
-
-  
-
   // client.loop() just tells the MQTT client code to do what it needs to do itself (i.e. check for messages, etc.)
   client.loop();
+  delay(10);
   // Once it has done all it needs to do for this cycle, go back to checking if we are still connected.
+  
+  int LDR_value = analogRead(LDR_IN);
+
+  bool LDR_triggered = LDR_value > 800 ? false:true ;
+
+  if (LDR_triggered && !notif_status) {
+      client.publish(MQTT_TOPIC, "Triggered!");
+      //Serial.println("Triggered!");
+      trigger_time = millis();
+      notif_status = true;
+  }
+
+  if (!LDR_triggered && notif_status && (millis() - trigger_time) > 3000) {
+      client.publish(MQTT_TOPIC, "----------");
+      //Serial.println("----------");
+      notif_status = false;
+  }
+  
+
+  
 }
 
