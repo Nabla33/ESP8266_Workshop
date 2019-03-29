@@ -6,8 +6,8 @@ const int LDR_IN = A0;
 
 // WiFi
 // Make sure to update this for your own WiFi network!
-const char* SSID = "A501";
-const char* WIFI_PASS = "spoo1989";
+const char* SSID = "Your SSID here";
+const char* WIFI_PASS = "Your password here";
 
 // MQTT
 // Make sure to update this for your own MQTT Broker!
