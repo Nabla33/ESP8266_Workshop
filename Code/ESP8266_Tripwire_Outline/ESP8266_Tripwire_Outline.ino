@@ -1,8 +1,5 @@
 #include <ESP8266WiFi.h> // Enables the ESP8266 to connect to the local network (via WiFi)
 #include <PubSubClient.h> // Allows us to connect to, and publish to the MQTT broker
-#include <string>
-
-const int LDR_IN = A0;
 
 // WiFi
 // Make sure to update this for your own WiFi network!
@@ -12,18 +9,15 @@ const char* WIFI_PASS = "Your password here";
 // MQTT
 // Make sure to update this for your own MQTT Broker!
 const char* MQTT_SERVER = "192.168.1.106";
-const char* MQTT_TOPIC = "trigger";
+const char* MQTT_TOPIC = "tripwire/trigger";
 
 // The client id identifies the ESP8266 device. Think of it a bit like a hostname (Or just a name, like Greg).
-const char* CLIENT_ID = "tripwire";
+const char* CLIENT_ID = "tripwire001";
 
 // Initialise the WiFi and MQTT Client objects
 WiFiClient wifi_client;
 PubSubClient client(MQTT_SERVER, 1883, wifi_client); // 1883 is the listener port for the Broker
 
-unsigned long int trigger_time = 0;
-
-bool notif_status = true;
 
 void MQTT_sub_callback(char* recv_topic, byte* payload, unsigned int msg_length) {
   return;
@@ -84,24 +78,6 @@ void loop() {
   // client.loop() just tells the MQTT client code to do what it needs to do itself (i.e. check for messages, etc.)
   client.loop();
   delay(10);
-  
-  int LDR_value = analogRead(LDR_IN);
-
-  //bool LDR_triggered = LDR_value > 800 ? false:true ;
-
-  if (LDR_triggered && !notif_status) {
-      //client.publish(MQTT_TOPIC, "Triggered!");
-      //Serial.println("Triggered!");
-      trigger_time = millis();
-      notif_status = true;
-  }
-
-  if (!LDR_triggered && notif_status && (millis() - trigger_time) > 3000) {
-      //client.publish(MQTT_TOPIC, "----------");
-      //Serial.println("----------");
-      notif_status = false;
-  }
-  
   // Once it has done all it needs to do for this cycle, go back to checking if we are still connected.
 }
 
